@@ -1,0 +1,74 @@
+groups:
+  - name: cloudops.services
+    rules:
+      - alert: CloudOpsServiceDown
+        expr: up{namespace="cloudops"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.job }} is down"
+          description: "Prometheus cannot scrape {{ $labels.job }} (pod {{ $labels.pod }}) for 1 minute."
+      - alert: CloudOpsHighErrorRate
+        expr: |
+          (sum by (job) (rate(http_server_requests_seconds_count{namespace="cloudops",status=~"5.."}[2m]))
+            / sum by (job) (rate(http_server_requests_seconds_count{namespace="cloudops"}[2m]))) > 0.05
+          and sum by (job) (rate(http_server_requests_seconds_count{namespace="cloudops"}[2m])) > 0.2
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.job }}: more than 5% of requests fail"
+          description: "5xx ratio is {{ $value | humanizePercentage }} over the last 2 minutes."
+      - alert: CloudOpsHighLatencyP95
+        expr: histogram_quantile(0.95, sum by (job, le) (rate(http_server_requests_seconds_bucket{namespace="cloudops"}[2m]))) > 1
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.job }}: p95 latency above 1s"
+          description: "p95 latency is {{ $value | humanizeDuration }}."
+  - name: cloudops.kubernetes
+    rules:
+      - alert: CloudOpsPodNotReady
+        expr: kube_pod_status_ready{namespace="cloudops",condition="false"} == 1
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Pod {{ $labels.pod }} is not Ready"
+          description: "The pod has failed its readiness probe for 2 minutes; it receives no traffic."
+      - alert: CloudOpsPodRestarting
+        expr: increase(kube_pod_container_status_restarts_total{namespace="cloudops"}[10m]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "Container {{ $labels.container }} in {{ $labels.pod }} restarted"
+          description: "{{ $value }} restart(s) in the last 10 minutes."
+      - alert: CloudOpsDeploymentUnavailable
+        expr: kube_deployment_status_replicas_unavailable{namespace="cloudops"} > 0
+        for: 3m
+        labels: { severity: warning }
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} has unavailable replicas"
+          description: "A rollout may be stuck or pods are failing."
+      - alert: CloudOpsContainerMemoryNearLimit
+        expr: |
+          max by (pod, container) (container_memory_working_set_bytes{namespace="cloudops",container!=""})
+            / max by (pod, container) (kube_pod_container_resource_limits{namespace="cloudops",resource="memory"}) > 0.9
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.pod }}/{{ $labels.container }} is above 90% of its memory limit"
+          description: "OOM kill is likely if usage keeps growing."
+  - name: cloudops.nodes
+    rules:
+      - alert: CloudOpsNodeCpuHigh
+        expr: 100 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100 > 85
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Node {{ $labels.instance }} CPU above 85%"
+          description: "Sustained CPU pressure; pods may be throttled."
+      - alert: CloudOpsNodeMemoryHigh
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 90
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Node {{ $labels.instance }} memory above 90%"
+          description: "Risk of evictions and OOM kills."

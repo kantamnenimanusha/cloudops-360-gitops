@@ -1,0 +1,8 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudops-alerts
+  labels:
+    app.kubernetes.io/part-of: cloudops-360
+spec:
+  {{- .Files.Get "files/rules.yaml" | nindent 2 }}

@@ -1,0 +1,4 @@
+env: local
+gitops:
+  repoURL: https://github.com/__GITHUB_USER__/cloudops-360-gitops.git
+  revision: main

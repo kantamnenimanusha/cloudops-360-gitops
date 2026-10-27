@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cluster-config
+description: Namespace with Pod Security labels and a read-only ServiceAccount for Jenkins rollout verification
+version: 0.1.0

@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: cloudops
+  source:
+    repoURL: https://github.com/__GITHUB_USER__/cloudops-360-gitops.git
+    targetRevision: main
+    path: charts/argocd-apps
+    helm:
+      valueFiles:
+        - ../../envs/aws/root.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }

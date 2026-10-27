@@ -1,0 +1,11 @@
+image:
+  repository: __ECR_REGISTRY__/cloudops/cloudops-frontend
+  tag: "0.1.0"
+containerPort: 8080
+service: { port: 8080 }
+metrics: { enabled: false }
+probes:
+  startup:   { path: /healthz }
+  liveness:  { path: /healthz }
+  readiness: { path: /healthz }
+tmpDirs: [/tmp, /var/cache/nginx]

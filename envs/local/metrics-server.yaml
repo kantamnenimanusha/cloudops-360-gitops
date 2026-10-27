@@ -1,0 +1,2 @@
+args:
+  - --kubelet-insecure-tls        # kind kubelets use self-signed certificates (LOCAL ONLY)

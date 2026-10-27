@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cloudops-app
+description: Generic, hardened chart used for all four CloudOps 360 workloads (release name = app name)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

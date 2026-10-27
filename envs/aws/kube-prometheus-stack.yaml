@@ -1,0 +1,73 @@
+# Sized for a 16 GB laptop / 2 small nodes. Retention is short on purpose.
+defaultRules:
+  rules:
+    etcd: false
+    kubeScheduler: false
+    kubeControllerManager: false
+    kubeProxy: false
+kubeEtcd: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeControllerManager: { enabled: false }
+kubeProxy: { enabled: false }
+
+prometheus-node-exporter:
+  hostRootFsMount:
+    enabled: false          # avoids "not a shared mount" failures on kind / Docker Desktop
+
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    resources:
+      requests: { cpu: 200m, memory: 600Mi }
+      limits: { memory: 1200Mi }
+    # pick up ServiceMonitors/PrometheusRules from every namespace without special labels
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+alertmanager:
+  alertmanagerSpec:
+    secrets: [alertmanager-webhook-token]     # created by scripts, mounted at /etc/alertmanager/secrets/<name>/
+    resources:
+      requests: { cpu: 20m, memory: 64Mi }
+      limits: { memory: 160Mi }
+  config:
+    route:
+      receiver: cloudops-backend
+      group_by: [alertname, job]
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 4h
+      routes:
+        - receiver: "null"
+          matchers: ['alertname=~"Watchdog|InfoInhibitor"']
+    receivers:
+      - name: "null"
+      - name: cloudops-backend
+        webhook_configs:
+          - url: http://cloudops-backend.cloudops.svc:8000/api/v1/webhooks/alertmanager
+            send_resolved: true
+            http_config:
+              authorization:
+                type: Bearer
+                credentials_file: /etc/alertmanager/secrets/alertmanager-webhook-token/token
+
+grafana:
+  # No adminPassword here: the chart generates one and stores it in a Secret (see docs for how to read it).
+  persistence: { enabled: false }
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 320Mi }
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  additionalDataSources:
+    - { name: Loki, type: loki, uid: loki, access: proxy, url: "http://loki.monitoring.svc:3100" }
+    - { name: Jaeger, type: jaeger, uid: jaeger, access: proxy, url: "http://jaeger.monitoring.svc:16686" }
+
+kube-state-metrics:
+  resources:
+    requests: { cpu: 10m, memory: 48Mi }
+    limits: { memory: 128Mi }

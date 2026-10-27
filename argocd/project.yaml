@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cloudops
+  namespace: argocd
+spec:
+  description: CloudOps 360
+  sourceRepos:
+    - https://github.com/__GITHUB_USER__/cloudops-360-gitops.git
+    - https://prometheus-community.github.io/helm-charts
+    - https://kubernetes-sigs.github.io/metrics-server/
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: argocd }
+    - { server: https://kubernetes.default.svc, namespace: cloudops }
+    - { server: https://kubernetes.default.svc, namespace: monitoring }
+    - { server: https://kubernetes.default.svc, namespace: kube-system }
+  # Cluster-scoped kinds are needed for CRDs, ClusterRoles and Namespaces created by the monitoring stack.
+  clusterResourceWhitelist:
+    - { group: "*", kind: "*" }

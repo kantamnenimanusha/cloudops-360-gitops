@@ -1,0 +1,22 @@
+image:
+  repository: __ECR_REGISTRY__/cloudops/cloudops-backend
+  tag: "0.1.0"
+containerPort: 8000
+service: { port: 8000 }
+rbac: { enabled: true }
+envFromSecrets: [cloudops-backend-secrets]
+env:
+  APP_ENV: aws
+  PROMETHEUS_URL: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+  ALERTMANAGER_URL: http://kube-prometheus-stack-alertmanager.monitoring.svc:9093
+  LOKI_URL: http://loki.monitoring.svc:3100
+  MONITORED_NAMESPACE: cloudops
+  ARGOCD_NAMESPACE: argocd
+  JENKINS_JOBS: orders-service,inventory-service,cloudops-backend,cloudops-frontend
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger.monitoring.svc:4318
+  JENKINS_URL: http://__CI_SERVER_PRIVATE_IP__:8080
+  ENABLE_AWS: "true"
+  AWS_REGION: __AWS_REGION__
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: __BACKEND_ROLE_ARN__

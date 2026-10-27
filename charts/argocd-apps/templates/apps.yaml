@@ -1,0 +1,125 @@
+# ---- wave 0: cluster config + metrics stack (CRDs must exist before ServiceMonitors/PrometheusRules) ----
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cloudops
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: charts/cluster-config
+  destination:
+    server: {{ .Values.destination }}
+    namespace: cloudops
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cloudops
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: {{ .Values.charts.kubePrometheusStack | quote }}
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/envs/{{ .Values.env }}/kube-prometheus-stack.yaml
+    - repoURL: {{ .Values.gitops.repoURL }}
+      targetRevision: {{ .Values.gitops.revision }}
+      ref: values
+  destination:
+    server: {{ .Values.destination }}
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true", "ServerSideApply=true"]
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 5m } }
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cloudops
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/metrics-server/
+      chart: metrics-server
+      targetRevision: {{ .Values.charts.metricsServer | quote }}
+      helm:
+        releaseName: metrics-server
+        valueFiles:
+          - $values/envs/{{ .Values.env }}/metrics-server.yaml
+    - repoURL: {{ .Values.gitops.repoURL }}
+      targetRevision: {{ .Values.gitops.revision }}
+      ref: values
+  destination:
+    server: {{ .Values.destination }}
+    namespace: kube-system
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 5m } }
+---
+# ---- wave 1: Loki, Alloy, Jaeger, alert rules, dashboards ----
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-extras
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: cloudops
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: charts/observability-extras
+  destination:
+    server: {{ .Values.destination }}
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true", "SkipDryRunOnMissingResource=true"]
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 5m } }
+{{- range .Values.workloads }}
+---
+# ---- wave 2: application workloads ----
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: cloudops
+  source:
+    repoURL: {{ $.Values.gitops.repoURL }}
+    targetRevision: {{ $.Values.gitops.revision }}
+    path: charts/cloudops-app
+    helm:
+      releaseName: {{ .name }}
+      valueFiles:
+        - ../../envs/{{ $.Values.env }}/{{ .name }}.yaml
+  destination:
+    server: {{ $.Values.destination }}
+    namespace: cloudops
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true", "SkipDryRunOnMissingResource=true"]
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 5m } }
+{{- end }}

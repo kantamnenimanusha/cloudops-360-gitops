@@ -1,0 +1,22 @@
+image:
+  repository: __ECR_REGISTRY__/cloudops/orders-service
+  tag: "0.1.0"
+containerPort: 8080
+service: { port: 8080 }
+metrics: { enabled: true, path: /actuator/prometheus }
+probes:
+  startup:   { path: /actuator/health/liveness, periodSeconds: 5, failureThreshold: 40 }
+  liveness:  { path: /actuator/health/liveness }
+  readiness: { path: /actuator/health/readiness }
+resources:
+  requests: { cpu: 100m, memory: 384Mi }
+  limits: { memory: 768Mi }
+hpa: { enabled: true, minReplicas: 1, maxReplicas: 3, targetCPUUtilizationPercentage: 70 }
+envFromSecrets: [chaos-secrets]
+env:
+  INVENTORY_URL: http://inventory-service:8000
+  CHAOS_ENABLED: "true"      # demo failure injection; still requires the X-Chaos-Token secret
+  OTEL_TRACES_EXPORTER: otlp
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger.monitoring.svc:4318
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_SERVICE_NAME: orders-service

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: observability-extras
+description: Loki (logs), Alloy (log shipper), Jaeger (traces), alert rules and Grafana dashboards for CloudOps 360
+version: 0.1.0

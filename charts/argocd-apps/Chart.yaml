@@ -1,0 +1,4 @@
+apiVersion: v2
+name: argocd-apps
+description: App-of-apps - renders every Argo CD Application for one environment
+version: 0.1.0

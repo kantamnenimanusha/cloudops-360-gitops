@@ -1,0 +1,11 @@
+# Image tags were chosen from memory and NOT verified against the registries. Verify with `docker pull <image>`
+# and bump to current releases (see docs/VERSIONS.md).
+images:
+  loki: grafana/loki:3.2.0
+  alloy: grafana/alloy:v1.5.1
+  jaeger: jaegertracing/all-in-one:1.62.0
+monitoredNamespace: cloudops
+resources:
+  loki:   { requests: { cpu: 50m, memory: 128Mi }, limits: { memory: 384Mi } }
+  alloy:  { requests: { cpu: 50m, memory: 96Mi },  limits: { memory: 256Mi } }
+  jaeger: { requests: { cpu: 50m, memory: 128Mi }, limits: { memory: 384Mi } }

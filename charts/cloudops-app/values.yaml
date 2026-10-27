@@ -1,0 +1,54 @@
+replicaCount: 1
+progressDeadlineSeconds: 120   # a stuck rollout is reported as failed after 2 minutes (old pods keep serving)
+
+image:
+  repository: ""
+  tag: ""                      # Jenkins rewrites this line after every successful build
+  pullPolicy: IfNotPresent
+
+containerPort: 8000
+service:
+  port: 8000
+
+env: {}                        # plain (non-secret) environment variables
+envFromSecrets: []             # names of Kubernetes Secrets injected as env (created out-of-band, never in Git)
+
+probes:
+  startup:   { path: /health, periodSeconds: 5,  failureThreshold: 30 }
+  liveness:  { path: /health, periodSeconds: 10, failureThreshold: 3 }
+  readiness: { path: /ready,  periodSeconds: 5,  failureThreshold: 2 }
+
+metrics:
+  enabled: true
+  path: /metrics
+  interval: 15s
+
+resources:
+  requests: { cpu: 50m, memory: 96Mi }
+  limits: { memory: 256Mi }
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+serviceAccount:
+  annotations: {}
+
+rbac:
+  enabled: false               # true only for the backend: read-only ClusterRole + token automount
+
+tmpDirs: [/tmp]
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile: { type: RuntimeDefault }
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: { drop: ["ALL"] }

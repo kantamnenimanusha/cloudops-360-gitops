@@ -1,0 +1,10 @@
+image:
+  repository: __ECR_REGISTRY__/cloudops/inventory-service
+  tag: "0.1.0"
+containerPort: 8000
+service: { port: 8000 }
+hpa: { enabled: true, minReplicas: 1, maxReplicas: 3, targetCPUUtilizationPercentage: 70 }
+envFromSecrets: [chaos-secrets]
+env:
+  CHAOS_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger.monitoring.svc:4318
