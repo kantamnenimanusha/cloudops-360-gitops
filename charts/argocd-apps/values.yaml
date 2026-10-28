@@ -1,7 +1,7 @@
 env: local
 destination: https://kubernetes.default.svc
 gitops:
-  repoURL: https://github.com/__GITHUB_USER__/cloudops-360-gitops.git
+  repoURL: https://github.com/kantamnenimanusha/cloudops-360-gitops.git
   revision: main
 # Helm chart version constraints for third-party charts. "*" = newest. After the first successful sync,
 # PIN these to the exact versions you tested (see docs/VERSIONS.md).

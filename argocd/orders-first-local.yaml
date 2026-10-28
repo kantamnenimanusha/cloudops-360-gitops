@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: orders-service
+  namespace: argocd
+
+spec:
+  project: cloudops
+
+  source:
+    repoURL: https://github.com/kantamnenimanusha/cloudops-360-gitops.git
+    targetRevision: main
+    path: charts/cloudops-app
+
+    helm:
+      releaseName: orders-service
+      valueFiles:
+        - ../../envs/local/orders-service.yaml
+        - ../../envs/local/orders-first-deploy.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cloudops

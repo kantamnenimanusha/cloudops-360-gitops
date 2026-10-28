@@ -1,0 +1,16 @@
+﻿metrics:
+  enabled: false
+
+hpa:
+  enabled: false
+
+replicaCount: 1
+
+envFromSecrets: []
+
+env:
+  INVENTORY_URL: http://inventory-service:8000
+  CHAOS_ENABLED: "false"
+  OTEL_TRACES_EXPORTER: none
+  OTEL_METRICS_EXPORTER: none
+  OTEL_LOGS_EXPORTER: none
