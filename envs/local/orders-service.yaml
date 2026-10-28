@@ -1,6 +1,6 @@
 image:
   repository: localhost:5001/cloudops/orders-service
-  tag: "b8041f69-14"
+  tag: "b8041f69-15"
 containerPort: 8080
 service: { port: 8080 }
 metrics: { enabled: true, path: /actuator/prometheus }
