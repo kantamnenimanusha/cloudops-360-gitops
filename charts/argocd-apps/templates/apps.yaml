@@ -115,6 +115,9 @@ spec:
       releaseName: {{ .name }}
       valueFiles:
         - ../../envs/{{ $.Values.env }}/{{ .name }}.yaml
+{{ if eq .name "orders-service" }}
+        - ../../envs/{{ $.Values.env }}/orders-first-deploy.yaml
+{{ end }}
   destination:
     server: {{ $.Values.destination }}
     namespace: cloudops
