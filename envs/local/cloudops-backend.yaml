@@ -1,6 +1,6 @@
 image:
   repository: localhost:5001/cloudops/cloudops-backend
-  tag: "0.1.0"
+  tag: "961283ba-2"
 containerPort: 8000
 service: { port: 8000 }
 rbac: { enabled: true }
