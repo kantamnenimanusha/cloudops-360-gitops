@@ -63,9 +63,7 @@ grafana:
       enabled: true
       label: grafana_dashboard
       searchNamespace: ALL
-  additionalDataSources:
-    - { name: Loki, type: loki, uid: loki, access: proxy, url: "http://loki.monitoring.svc:3100" }
-    - { name: Jaeger, type: jaeger, uid: jaeger, access: proxy, url: "http://jaeger.monitoring.svc:16686" }
+  
 
 kube-state-metrics:
   resources:
