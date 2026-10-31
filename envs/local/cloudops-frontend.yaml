@@ -1,6 +1,6 @@
 image:
   repository: localhost:5001/cloudops/cloudops-frontend
-  tag: "0.1.0"
+  tag: "bd4ffc6b-4"
 containerPort: 8080
 service: { port: 8080 }
 metrics: { enabled: false }
