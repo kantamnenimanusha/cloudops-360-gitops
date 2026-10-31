@@ -53,11 +53,22 @@ alertmanager:
                 credentials_file: /etc/alertmanager/secrets/alertmanager-webhook-token/token
 
 grafana:
-  # No adminPassword here: the chart generates one and stores it in a Secret (see docs for how to read it).
+  # No adminPassword here: the chart generates one and stores it in a Secret.
   persistence: { enabled: false }
+
   resources:
     requests: { cpu: 50m, memory: 128Mi }
     limits: { memory: 320Mi }
+
+  startupProbe:
+    httpGet:
+      path: /api/health
+      port: grafana
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
   sidecar:
     dashboards:
       enabled: true
