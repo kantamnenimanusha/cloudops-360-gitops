@@ -1,6 +1,6 @@
 image:
   repository: localhost:5001/cloudops/inventory-service
-  tag: "0.1.0"
+  tag: "bd4ffc6b-5"
 containerPort: 8000
 service: { port: 8000 }
 hpa: { enabled: true, minReplicas: 1, maxReplicas: 3, targetCPUUtilizationPercentage: 70 }
