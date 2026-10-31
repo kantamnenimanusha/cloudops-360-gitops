@@ -69,6 +69,10 @@ grafana:
     failureThreshold: 30
     successThreshold: 1
 
+  grafana.ini:
+    unified_storage:
+      migration_parquet_buffer: true
+
   sidecar:
     dashboards:
       enabled: true
